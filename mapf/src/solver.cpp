@@ -182,7 +182,7 @@ void Solver::makeLogBasicInfo(std::ofstream& log)
   Grid* grid = reinterpret_cast<Grid*>(P->getG());
   log << "instance=" << P->getInstanceFileName() << "\n";
   log << "agents=" << P->getNum() << "\n";
-  log << "map_file=" << grid->getMapFileName() << "\n";
+  log << "map_file=" << grid ->getMapFileName() << "\n";
   log << "solver=" << solver_name << "\n";
   log << "solved=" << solved << "\n";
   log << "soc=" << solution.getSOC() << "\n";

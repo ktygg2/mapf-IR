@@ -1,4 +1,6 @@
 #include "../include/cbs.hpp"
+#include "pos.hpp" 
+#include <fstream>
 
 const std::string CBS::SOLVER_NAME = "CBS";
 
@@ -68,7 +70,25 @@ void CBS::run()
     }
   }
 
-  if (solved) solution = pathsToPlan(n->paths);
+  if (solved) {
+    solution = pathsToPlan(n->paths);
+  
+    std::ofstream fout("result.txt");
+    fout << "agents " << solution.size() << std::endl;
+  
+    for (int i = 0; i < solution.size(); ++i) {
+        fout << "agent " << i << " " << solution.get(i).size() - 1 << std::endl;
+      
+        for (int t = 0; t < solution.get(i).size(); ++t) {
+            Node* node = solution.get(t, i);  // get(t, i)를 사용하여 노드 위치 가져오기
+            // 랜덤한 z값 설정 (예: 0 ~ 5 범위)
+            int z = std::rand() % 6;
+            fout << t << " " << node->pos.x << " " << node->pos.y << " " << node->pos.z << std::endl;
+        }
+    }
+  
+    fout.close();
+  }
 }
 
 void CBS::setInitialHighLevelNode(HighLevelNode_p n)
