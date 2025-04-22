@@ -3,7 +3,7 @@
 map_file=arena.map
 
 ## number of agents
-agents=10
+agents=5
 
 ## ==== custom =======
 ## seed of randomization
@@ -26,6 +26,6 @@ well_formed=1
 ## custom starts/goals
 ## invalid when random_problem=1 or scen_file exists
 ## (x_s, y_s, x_g, y_g, z_s, z_g)
-## (0, 0, 4, 0, 0, 0): left-top corner
-# 0,0,4,0, 0,0
-# 3,1,3,0, 2,3
+## (0, 0): left-top corner
+# 0,0,4,0
+# 3,1,3,0

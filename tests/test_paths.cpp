@@ -1,15 +1,13 @@
 #include <paths.hpp>
-
 #include "gtest/gtest.h"
 
 TEST(Paths, basic)
 {
-  Grid G("8x8.map");
-  Node* v = G.getNode(0);
-  Node* u = G.getNode(1);
-  Node* w = G.getNode(2);
+  Grid G("arena_3d.map3d");  // 3D 맵 파일 사용
+  Node* v = G.getNode(0, 0, 0);
+  Node* u = G.getNode(0, 0, 1);
+  Node* w = G.getNode(0, 1, 1);
 
-  // format
   Paths paths(2);
   paths.insert(0, {v});
   ASSERT_EQ(paths.get(0).size(), 1);
@@ -20,12 +18,11 @@ TEST(Paths, basic)
   ASSERT_EQ(paths.getMakespan(), 1);
   ASSERT_EQ(paths.getSOC(), 1);
   ASSERT_EQ(paths.get(0, 0), v);
-  ASSERT_EQ(paths.get(0, 1), v);
+  ASSERT_EQ(paths.get(0, 1), v);  // padding
   ASSERT_EQ(paths.get(1, 0), u);
   ASSERT_EQ(paths.get(1, 1), w);
   ASSERT_FALSE(paths.empty(1));
 
-  // shrink
   paths.insert(1, {u});
   ASSERT_EQ(paths.get(0).size(), 1);
   ASSERT_EQ(paths.getMakespan(), 0);
@@ -34,11 +31,11 @@ TEST(Paths, basic)
 
 TEST(Paths, add)
 {
-  Grid G("8x8.map");
-  Node* v = G.getNode(0);
-  Node* u = G.getNode(1);
-  Node* w = G.getNode(2);
-  Node* x = G.getNode(3);
+  Grid G("arena_3d.map3d");
+  Node* v = G.getNode(0, 0, 0);
+  Node* u = G.getNode(0, 0, 1);
+  Node* w = G.getNode(0, 1, 1);
+  Node* x = G.getNode(0, 2, 1);
 
   Path path_1_0 = {v, u};
   Path path_1_1 = {u, w};
@@ -60,11 +57,11 @@ TEST(Paths, add)
 
 TEST(Paths, conflict)
 {
-  Grid G("8x8.map");
-  Node* v = G.getNode(0);
-  Node* u = G.getNode(1);
-  Node* w = G.getNode(2);
-  Node* x = G.getNode(3);
+  Grid G("arena_3d.map3d");
+  Node* v = G.getNode(0, 0, 0);
+  Node* u = G.getNode(0, 0, 1);
+  Node* w = G.getNode(0, 1, 1);
+  Node* x = G.getNode(0, 2, 1);
 
   // no conflict
   Paths paths0(2);

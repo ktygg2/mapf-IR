@@ -13,8 +13,8 @@ TEST(LibIR, identifyInteractingSetByMDD)
   Config goals = P.getConfigGoal();
   Plan plan;
   plan.add(starts);
-  plan.add({G->getNode(0, 1), G->getNode(1, 1), G->getNode(2, 1)});
-  plan.add({G->getNode(1, 1), G->getNode(1, 2), G->getNode(2, 2)});
+  plan.add({G->getNode(0, 1, 0), G->getNode(1, 1, 0), G->getNode(2, 1, 0)});
+  plan.add({G->getNode(1, 1, 0), G->getNode(1, 2, 0), G->getNode(2, 2, 0)});
   plan.add(goals);
   ASSERT_TRUE(plan.validate(starts, goals));
 
@@ -34,12 +34,12 @@ TEST(libIR, identifyInteractingSetByMDD_Advanced)
   Config starts = P.getConfigStart();
   Config goals = P.getConfigGoal();
   Plan plan;
-  plan.add({G->getNode(0, 3), G->getNode(1, 2), G->getNode(2, 0)});
-  plan.add({G->getNode(0, 3), G->getNode(1, 3), G->getNode(2, 1)});
-  plan.add({G->getNode(1, 3), G->getNode(1, 4), G->getNode(2, 2)});
-  plan.add({G->getNode(1, 3), G->getNode(1, 4), G->getNode(2, 3)});
-  plan.add({G->getNode(2, 3), G->getNode(1, 4), G->getNode(2, 4)});
-  plan.add({G->getNode(3, 3), G->getNode(1, 4), G->getNode(2, 4)});
+  plan.add({G->getNode(0, 3, 0), G->getNode(1, 2, 0), G->getNode(2, 0, 0)});
+  plan.add({G->getNode(0, 3, 0), G->getNode(1, 3, 0), G->getNode(2, 1, 0)});
+  plan.add({G->getNode(1, 3, 0), G->getNode(1, 4, 0), G->getNode(2, 2, 0)});
+  plan.add({G->getNode(1, 3, 0), G->getNode(1, 4, 0), G->getNode(2, 3, 0)});
+  plan.add({G->getNode(2, 3, 0), G->getNode(1, 4, 0), G->getNode(2, 4, 0)});
+  plan.add({G->getNode(3, 3, 0), G->getNode(1, 4, 0), G->getNode(2, 4, 0)});
   ASSERT_TRUE(plan.validate(starts, goals));
 
   auto modif_list1 = IR::identifyInteractingSetByMDD(0, plan, &solver);
@@ -50,14 +50,14 @@ TEST(libIR, identifyInteractingSetByMDD_Advanced)
 
 TEST(libIR, identifyAgentsAtGoal)
 {
-  Grid G("8x8.map");
+  auto G = Grid("arena_3d.map3d");
 
-  Node* a = G.getNode(0);
-  Node* b = G.getNode(1);
-  Node* c = G.getNode(2);
-  Node* d = G.getNode(3);
-  Node* e = G.getNode(4);
-  Node* x = G.getNode(3, 1);
+  Node* a = G.getNode(0, 0, 0); // a: (0,0,0)
+  Node* b = G.getNode(1, 0, 0); // b: (1,0,0)
+  Node* c = G.getNode(2, 0, 0); // c: (2,0,0)
+  Node* d = G.getNode(3, 0, 0); // d: (3,0,0)
+  Node* e = G.getNode(4, 0, 0); // e: (4,0,0)
+  Node* x = G.getNode(3, 1, 0); // x: (3,1,0)
 
   Config starts = {c, a};
   Config goals = {d, e};
@@ -87,9 +87,9 @@ TEST(libIR, identifyBottleneckAgents)
 
   Plan plan;
   plan.add(starts);
-  plan.add({G->getNode(0, 3), G->getNode(0, 1)});
-  plan.add({G->getNode(0, 3), G->getNode(0, 2)});
-  plan.add({G->getNode(1, 3), G->getNode(0, 3)});
+  plan.add({G->getNode(0, 3, 0), G->getNode(0, 1, 0)});
+  plan.add({G->getNode(0, 3, 0), G->getNode(0, 2, 0)});
+  plan.add({G->getNode(1, 3, 0), G->getNode(0, 3, 0)});
   plan.add(goals);
   ASSERT_TRUE(plan.validate(starts, goals));
 
@@ -118,9 +118,9 @@ TEST(IR_SINGLE_PATHS, solve)
   auto solver = IR_SINGLE_PATHS(&P);
 
   Plan plan;
-  plan.add({G->getNode(0, 0), G->getNode(2, 0)});
-  plan.add({G->getNode(0, 0), G->getNode(3, 0)});
-  plan.add({G->getNode(1, 0), G->getNode(3, 0)});
+  plan.add({G->getNode(0, 0, 0), G->getNode(2, 0, 0)});
+  plan.add({G->getNode(0, 0, 0), G->getNode(3, 0, 0)});
+  plan.add({G->getNode(1, 0, 0), G->getNode(3, 0, 0)});
   ASSERT_TRUE(plan.validate(P.getConfigStart(), P.getConfigGoal()));
   ASSERT_EQ(plan.getSOC(), 3);
 
@@ -139,11 +139,11 @@ TEST(IR_FIX_AT_GOALS, solve)
   auto solver = IR_FIX_AT_GOALS(&P);
 
   Plan plan;
-  plan.add({G->getNode(2, 0), G->getNode(0, 0)});
-  plan.add({G->getNode(3, 0), G->getNode(1, 0)});
-  plan.add({G->getNode(3, 0), G->getNode(2, 0)});
-  plan.add({G->getNode(3, 1), G->getNode(3, 0)});
-  plan.add({G->getNode(3, 0), G->getNode(4, 0)});
+  plan.add({G->getNode(2, 0, 0), G->getNode(0, 0, 0)});
+  plan.add({G->getNode(3, 0, 0), G->getNode(1, 0, 0)});
+  plan.add({G->getNode(3, 0, 0), G->getNode(2, 0, 0)});
+  plan.add({G->getNode(3, 1, 0), G->getNode(3, 0, 0)});
+  plan.add({G->getNode(3, 0, 0), G->getNode(4, 0, 0)});
   ASSERT_TRUE(plan.validate(P.getConfigStart(), P.getConfigGoal()));
   ASSERT_EQ(plan.getSOC(), 8);
   ASSERT_EQ(plan.getMakespan(), 4);

@@ -14,13 +14,13 @@ TEST(Problem, loading)
 
   Config starts = P.getConfigStart();
   ASSERT_EQ(starts.size(), 2);
-  ASSERT_EQ(starts[0], G->getNode(0, 0));
-  ASSERT_EQ(starts[1], G->getNode(1, 1));
+  ASSERT_EQ(starts[0], G->getNode(0, 0, 0));  // 2D -> 3D (z=0)
+  ASSERT_EQ(starts[1], G->getNode(1, 1, 0));
 
   Config goals = P.getConfigGoal();
   ASSERT_EQ(goals.size(), 2);
-  ASSERT_EQ(goals[0], G->getNode(1, 0));
-  ASSERT_EQ(goals[1], G->getNode(0, 1));
+  ASSERT_EQ(goals[0], G->getNode(1, 0, 0));
+  ASSERT_EQ(goals[1], G->getNode(0, 1, 0));
 }
 
 TEST(Problem, plan)
@@ -29,15 +29,15 @@ TEST(Problem, plan)
   Graph* G = P.getG();
 
   Plan plan0;
-  Config c0_0 = {G->getNode(0, 0), G->getNode(1, 1)};
-  Config c0_1 = {G->getNode(1, 0), G->getNode(0, 1)};
+  Config c0_0 = {G->getNode(0, 0, 0), G->getNode(1, 1, 0)};
+  Config c0_1 = {G->getNode(1, 0, 0), G->getNode(0, 1, 0)};
   plan0.add(c0_0);
   plan0.add(c0_1);
   ASSERT_TRUE(plan0.validate(&P));
 
   Plan plan1;
-  Config c1_0 = {G->getNode(0, 0), G->getNode(1, 1)};
-  Config c1_1 = {G->getNode(0, 1), G->getNode(1, 0)};
+  Config c1_0 = {G->getNode(0, 0, 0), G->getNode(1, 1, 0)};
+  Config c1_1 = {G->getNode(0, 1, 0), G->getNode(1, 0, 0)};
   plan1.add(c1_0);
   plan1.add(c1_1);
   ASSERT_FALSE(plan1.validate(&P));

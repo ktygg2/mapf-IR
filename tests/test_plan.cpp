@@ -6,9 +6,9 @@
 TEST(Plan, basic)
 {
   Grid G("8x8.map");
-  Node* v = G.getNode(0);
-  Node* u = G.getNode(1);
-  Node* w = G.getNode(2);
+  Node* v = G.getNode(0, 0, 0);  // x=0, y=0, z=0
+  Node* u = G.getNode(1, 0, 0);  // x=1, y=0, z=0
+  Node* w = G.getNode(2, 0, 0);  // x=2, y=0, z=0
 
   Config c0 = {v, u};
   Config c1 = {v, w};
@@ -43,11 +43,12 @@ TEST(Plan, basic)
 
 TEST(Plan, add)
 {
-  Grid G("8x8.map");
-  Node* v = G.getNode(0);
-  Node* u = G.getNode(1);
-  Node* w = G.getNode(2);
-  Node* x = G.getNode(3);
+  auto G = Grid("arena_3d.map3d");
+
+  Node* v = G.getNode(0, 0, 0);
+  Node* u = G.getNode(1, 0, 0);
+  Node* w = G.getNode(2, 0, 0);
+  Node* x = G.getNode(3, 0, 0);
 
   Config c1_0 = {v, u};
   Config c1_1 = {v, w};
@@ -73,10 +74,11 @@ TEST(Plan, add)
 
 TEST(Plan, validate)
 {
-  Grid G("8x8.map");
-  Node* v = G.getNode(0);
-  Node* u = G.getNode(1);
-  Node* w = G.getNode(2);
+  auto G = Grid("arena_3d.map3d");
+
+  Node* v = G.getNode(0, 0, 0);
+  Node* u = G.getNode(1, 0, 0);
+  Node* w = G.getNode(2, 0, 0);
 
   // normal
   Plan plan0;
@@ -118,10 +120,11 @@ TEST(Plan, validate)
 
 TEST(Plan, maxConstraintTime)
 {
-  Grid G("8x8.map");
-  Node* v = G.getNode(0);
-  Node* u = G.getNode(1);
-  Node* w = G.getNode(2);
+  auto G = Grid("arena_3d.map3d");
+
+  Node* v = G.getNode(0, 0, 0);
+  Node* u = G.getNode(1, 0, 0);
+  Node* w = G.getNode(2, 0, 0);
 
   Plan plan;
   plan.add({v, u});

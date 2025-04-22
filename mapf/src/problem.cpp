@@ -8,113 +8,46 @@
 Problem::Problem(const std::string& _instance)
     : instance(_instance), instance_initialized(true)
 {
-  // read instance file
+  // read map from instance file
   std::ifstream file(instance);
   if (!file) halt("file " + instance + " is not found.");
 
   std::string line;
   std::smatch results;
-  std::regex r_comment = std::regex(R"(#.+)");
   std::regex r_map = std::regex(R"(map_file=(.+))");
-  std::regex r_agents = std::regex(R"(agents=(\d+))");
-  std::regex r_seed = std::regex(R"(seed=(\d+))");
-  std::regex r_random_problem = std::regex(R"(random_problem=(\d+))");
-  std::regex r_well_formed = std::regex(R"(well_formed=(\d+))");
-  std::regex r_max_timestep = std::regex(R"(max_timestep=(\d+))");
-  std::regex r_max_comp_time = std::regex(R"(max_comp_time=(\d+))");
-  std::regex r_sg = std::regex(R"((\d+),(\d+),(\d+),(\d+))");
 
-  bool read_scen = true;
-  bool well_formed = false;
   while (getline(file, line)) {
-    // for CRLF coding
     if (*(line.end() - 1) == 0x0d) line.pop_back();
-    // comment
-    if (std::regex_match(line, results, r_comment)) {
-      continue;
-    }
-    // read map
     if (std::regex_match(line, results, r_map)) {
       G = new Grid(results[1].str());
-      continue;
-    }
-    // set agent num
-    if (std::regex_match(line, results, r_agents)) {
-      num_agents = std::stoi(results[1].str());
-      continue;
-    }
-    // set random seed
-    if (std::regex_match(line, results, r_seed)) {
-      MT = new std::mt19937(std::stoi(results[1].str()));
-      continue;
-    }
-    // skip reading initial/goal nodes
-    if (std::regex_match(line, results, r_random_problem)) {
-      if (std::stoi(results[1].str())) {
-        read_scen = false;
-        config_s.clear();
-        config_g.clear();
-      }
-      continue;
-    }
-    //
-    if (std::regex_match(line, results, r_well_formed)) {
-      if (std::stoi(results[1].str())) well_formed = true;
-      continue;
-    }
-    // set max timestep
-    if (std::regex_match(line, results, r_max_timestep)) {
-      max_timestep = std::stoi(results[1].str());
-      continue;
-    }
-    // set max computation time
-    if (std::regex_match(line, results, r_max_comp_time)) {
-      max_comp_time = std::stoi(results[1].str());
-      continue;
-    }
-    // read initial/goal nodes
-    if (std::regex_match(line, results, r_sg) && read_scen &&
-        (int)config_s.size() < num_agents) {
-      int x_s = std::stoi(results[1].str());
-      int y_s = std::stoi(results[2].str());
-      int x_g = std::stoi(results[3].str());
-      int y_g = std::stoi(results[4].str());
-      if (!G->existNode(x_s, y_s)) {
-        halt("start node (" + std::to_string(x_s) + ", " + std::to_string(y_s) +
-             ") does not exist, invalid scenario");
-      }
-      if (!G->existNode(x_g, y_g)) {
-        halt("goal node (" + std::to_string(x_g) + ", " + std::to_string(y_g) +
-             ") does not exist, invalid scenario");
-      }
-
-      Node* s = G->getNode(x_s, y_s);
-      Node* g = G->getNode(x_g, y_g);
-      config_s.push_back(s);
-      config_g.push_back(g);
+      break;
     }
   }
 
-  // set default value not identified params
-  if (MT == nullptr) MT = new std::mt19937(DEFAULT_SEED);
-  if (max_timestep == 0) max_timestep = DEFAULT_MAX_TIMESTEP;
-  if (max_comp_time == 0) max_comp_time = DEFAULT_MAX_COMP_TIME;
+  // 하드코딩 설정
+  num_agents = 2;
 
-  // check starts/goals
-  if (num_agents <= 0) halt("invalid number of agents");
-  const int config_s_size = config_s.size();
-  if (!config_s.empty() && num_agents > config_s_size) {
-    warn("given starts/goals are not sufficient\nrandomly create instances");
-  }
-  if (num_agents > config_s_size) {
-    if (well_formed) {
-      setWellFormedInstance();
-    } else {
-      setRandomStartsGoals();
-    }
+  // 하드코딩된 시작/목표 위치 (빈 공간 10x10x10)
+  Node* s1 = G->getNode(0, 0, 0);     // Agent 0 start
+  Node* g1 = G->getNode(9, 9, 9);     // Agent 0 goal
+  Node* s2 = G->getNode(9, 0, 0);     // Agent 1 start
+  Node* g2 = G->getNode(0, 9, 9);     // Agent 1 goal
+
+  if (!s1 || !g1 || !s2 || !g2) {
+    halt("Hardcoded node(s) do not exist. Check map size and coordinates.");
   }
 
-  // trimming
+  config_s.push_back(s1);
+  config_g.push_back(g1);
+  config_s.push_back(s2);
+  config_g.push_back(g2);
+
+  // 기본값 설정
+  MT = new std::mt19937(DEFAULT_SEED);
+  max_timestep = DEFAULT_MAX_TIMESTEP;
+  max_comp_time = DEFAULT_MAX_COMP_TIME;
+
+  // trimming (여기선 사실 필요 없음)
   config_s.resize(num_agents);
   config_g.resize(num_agents);
 }
@@ -172,7 +105,7 @@ void Problem::setRandomStartsGoals()
 
   // get grid size
   Grid* grid = reinterpret_cast<Grid*>(G);
-  const int N = grid->getWidth() * grid->getHeight();
+  const int N = grid->getWidth() * grid->getHeight() * grid->getDepth();  // 3D 환경에 맞게 수정
 
   // set starts
   std::vector<int> starts(N);
@@ -199,7 +132,7 @@ void Problem::setRandomStartsGoals()
       ++j;
       if (j >= N) halt("set goal, number of agents is too large.");
     }
-    // retry
+    // retry if goal is same as start
     if (G->getNode(goals[j]) == config_s[config_g.size()]) {
       config_g.clear();
       std::shuffle(goals.begin(), goals.end(), *MT);
@@ -212,10 +145,6 @@ void Problem::setRandomStartsGoals()
   }
 }
 
-/*
- * Note: it is hard to generate well-formed instances
- * with dense situations (e.g., ≥300 agents in arena)
- */
 void Problem::setWellFormedInstance()
 {
   // initialize
@@ -228,13 +157,13 @@ void Problem::setWellFormedInstance()
 
   while ((int)config_g.size() < getNum()) {
     while (true) {
-      // determine start
+      // determine start (3D 환경에 맞게 수정)
       Node* s;
       do {
         s = G->getNode(getRandomInt(0, N - 1, MT));
       } while (s == nullptr || inArray(s, prohibited));
 
-      // determine goal
+      // determine goal (3D 환경에 맞게 수정)
       Node* g;
       do {
         g = G->getNode(getRandomInt(0, N - 1, MT));
@@ -281,8 +210,8 @@ void Problem::makeScenFile(const std::string& output_file)
   log << "max_timestep=" << max_timestep << "\n";
   log << "max_comp_time=" << max_comp_time << "\n";
   for (int i = 0; i < num_agents; ++i) {
-    log << config_s[i]->pos.x << "," << config_s[i]->pos.y << ","
-        << config_g[i]->pos.x << "," << config_g[i]->pos.y << "\n";
+    log << config_s[i]->pos.x << "," << config_s[i]->pos.y << "," << config_s[i]->pos.z << ","
+        << config_g[i]->pos.x << "," << config_g[i]->pos.y << "," << config_g[i]->pos.z << "\n";
   }
   log.close();
 }

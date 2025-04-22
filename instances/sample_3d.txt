@@ -1,0 +1,4 @@
+map_file=arena_3d.map3d
+agents=2
+0,0,9,9,0,9
+9,9,0,0,9,0

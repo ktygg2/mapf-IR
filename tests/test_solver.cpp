@@ -4,11 +4,12 @@
 
 TEST(planToPaths, convert)
 {
-  Grid G("8x8.map");
-  Node* v = G.getNode(0);
-  Node* u = G.getNode(1);
-  Node* w = G.getNode(2);
-  Node* x = G.getNode(3);
+  auto G = Grid("arena_3d.map3d");
+
+  Node* v = G.getNode(0, 0, 0);
+  Node* u = G.getNode(1, 0, 0);
+  Node* w = G.getNode(2, 0, 0);
+  Node* x = G.getNode(3, 0, 0);
 
   Plan plan1;
   plan1.add({v, w});

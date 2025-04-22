@@ -53,62 +53,62 @@ LibCBS::Constraints LibCBS::getFirstConstraints(const Paths& paths)
 void LibCBS::getPrioritizedConflict(const int t, const int i, const int j,
                                     const Paths& paths, const MDDs& mdds,
                                     Constraints& cardinal_conflicts,
-                                    Constraints& semi_cardinal_constraints,
-                                    Constraints& non_cardinal_constraints)
+  Constraints& semi_cardinal_constraints,
+  Constraints& non_cardinal_constraints)
 {
-  int c_i = mdds[i]->c;
-  int c_j = mdds[j]->c;
-  int w_i = (t <= c_i) ? mdds[i]->getWidth(t) : 0;
-  int w_j = (t <= c_j) ? mdds[j]->getWidth(t) : 0;
+int c_i = mdds[i]->c;
+int c_j = mdds[j]->c;
+int w_i = (t <= c_i) ? mdds[i]->getWidth(t) : 0;
+int w_j = (t <= c_j) ? mdds[j]->getWidth(t) : 0;
   // vertex conflict
   if (paths.get(i, t) == paths.get(j, t)) {
-    Constraint_p constraint_i =
-        std::make_shared<Constraint>(i, t, paths.get(i, t), nullptr);
-    Constraint_p constraint_j =
-        std::make_shared<Constraint>(j, t, paths.get(j, t), nullptr);
+Constraint_p constraint_i =
+std::make_shared<Constraint>(i, t, paths.get(i, t), nullptr);
+Constraint_p constraint_j =
+std::make_shared<Constraint>(j, t, paths.get(j, t), nullptr);
     // cardinal conflicts
-    if ((t <= c_i && w_i == 1 && t <= c_j && w_j == 1) ||
-        (t > c_i && w_j == 1) || (t > c_j && w_i == 1)) {
-      cardinal_conflicts.push_back(constraint_i);
-      cardinal_conflicts.push_back(constraint_j);
-      return;
-    }
+if ((t <= c_i && w_i == 1 && t <= c_j && w_j == 1) ||
+(t > c_i && w_j == 1) || (t > c_j && w_i == 1)) {
+cardinal_conflicts.push_back(constraint_i);
+cardinal_conflicts.push_back(constraint_j);
+return;
+}
     // semi-cardinal conflicts
-    if (semi_cardinal_constraints.empty() &&
-        (t > c_i || t > c_j || w_i == 1 || w_j == 1)) {
-      semi_cardinal_constraints.push_back(constraint_i);
-      semi_cardinal_constraints.push_back(constraint_j);
-    } else if (non_cardinal_constraints.empty()) {
-      non_cardinal_constraints.push_back(constraint_i);
-      non_cardinal_constraints.push_back(constraint_j);
-    }
-  }
+if (semi_cardinal_constraints.empty() &&
+(t > c_i || t > c_j || w_i == 1 || w_j == 1)) {
+semi_cardinal_constraints.push_back(constraint_i);
+semi_cardinal_constraints.push_back(constraint_j);
+} else if (non_cardinal_constraints.empty()) {
+non_cardinal_constraints.push_back(constraint_i);
+non_cardinal_constraints.push_back(constraint_j);
+}
+}
   // swap conflict
   if (paths.get(i, t) == paths.get(j, t - 1) &&
       paths.get(j, t) == paths.get(i, t - 1)) {
-    Constraint_p constraint_i = std::make_shared<Constraint>(
-        i, t, paths.get(i, t), paths.get(i, t - 1));
-    Constraint_p constraint_j = std::make_shared<Constraint>(
-        j, t, paths.get(j, t), paths.get(j, t - 1));
+Constraint_p constraint_i = std::make_shared<Constraint>(
+i, t, paths.get(i, t), paths.get(i, t - 1));
+Constraint_p constraint_j = std::make_shared<Constraint>(
+j, t, paths.get(j, t), paths.get(j, t - 1));
     // cardinal conflicts
-    if ((t <= c_i && w_i == 1 && mdds[i]->body[t][0]->prev.size() == 1) &&
-        (t <= c_j && w_j == 1 && mdds[j]->body[t][0]->prev.size() == 1)) {
-      cardinal_conflicts.push_back(constraint_i);
-      cardinal_conflicts.push_back(constraint_j);
-      return;
-    }
+if ((t <= c_i && w_i == 1 && mdds[i]->body[t][0]->prev.size() == 1) &&
+(t <= c_j && w_j == 1 && mdds[j]->body[t][0]->prev.size() == 1)) {
+cardinal_conflicts.push_back(constraint_i);
+cardinal_conflicts.push_back(constraint_j);
+return;
+}
     // semi-cardinal conflicts
-    if (semi_cardinal_constraints.empty() &&
-        (t > c_i || t > c_j ||
-         (w_i == 1 && mdds[i]->body[t][0]->prev.size() == 1) ||
-         (w_j == 1 && mdds[j]->body[t][0]->prev.size() == 1))) {
-      semi_cardinal_constraints.push_back(constraint_i);
-      semi_cardinal_constraints.push_back(constraint_j);
-    } else if (non_cardinal_constraints.empty()) {
-      non_cardinal_constraints.push_back(constraint_i);
-      non_cardinal_constraints.push_back(constraint_j);
-    }
-  }
+if (semi_cardinal_constraints.empty() &&
+(t > c_i || t > c_j ||
+(w_i == 1 && mdds[i]->body[t][0]->prev.size() == 1) ||
+(w_j == 1 && mdds[j]->body[t][0]->prev.size() == 1))) {
+semi_cardinal_constraints.push_back(constraint_i);
+semi_cardinal_constraints.push_back(constraint_j);
+} else if (non_cardinal_constraints.empty()) {
+non_cardinal_constraints.push_back(constraint_i);
+non_cardinal_constraints.push_back(constraint_j);
+}
+}
 }
 
 // used for ICBS
@@ -566,21 +566,29 @@ void LibCBS::MDD::println() const
   for (int t = 0; t <= c; ++t) {
     std::cout << "t=" << t << std::endl;
     for (auto node : body[t]) {
-      std::cout << "- v=(" << node->v->pos.x << ", " << node->v->pos.y << "), "
+      // z 좌표 추가 (node->v->pos.z)
+      std::cout << "- v=(" << node->v->pos.x << ", " 
+                << node->v->pos.y << ", " 
+                << node->v->pos.z << "), "  // ← z 출력 추가
                 << "t=" << node->t << ", next: ";
       for (auto next_node : node->next) {
-        std::cout << "(" << next_node->v->pos.x << ", " << next_node->v->pos.y
-                  << "), ";
+        // z 좌표 추가
+        std::cout << "(" << next_node->v->pos.x << ", " 
+                  << next_node->v->pos.y << ", " 
+                  << next_node->v->pos.z << "), ";  // ← z 출력 추가
       }
       std::cout << ", prev: ";
       for (auto prev_node : node->prev) {
-        std::cout << "(" << prev_node->v->pos.x << ", " << prev_node->v->pos.y
-                  << "), ";
+        // z 좌표 추가
+        std::cout << "(" << prev_node->v->pos.x << ", " 
+                  << prev_node->v->pos.y << ", " 
+                  << prev_node->v->pos.z << "), ";  // ← z 출력 추가
       }
       std::cout << std::endl;
     }
   }
 }
+
 
 void LibCBS::MDD::halt(const std::string& msg) const
 {
