@@ -13,6 +13,8 @@
 #include "problem.hpp"
 #include "util.hpp"
 
+#include "linear_interpolator.hpp"
+
 class MinimumSolver
 {
 protected:
@@ -67,7 +69,6 @@ protected:
   DistanceTable distance_table;     // distance table
   DistanceTable* distance_table_p;  // pointer, used in nested solvers
 
-
   // -------------------------------
   // main
 private:
@@ -94,6 +95,25 @@ private:
 public:
   static Paths planToPaths(const Plan& plan);   // plan -> paths
   static Plan pathsToPlan(const Paths& paths);  // paths -> plan
+
+  // === 보간/분할 기능 활용 예시 ===
+  // 아래처럼 Solver 내부에서 보간된 경로를 사용하고 싶으면,
+  // Solution을 얻은 뒤 아래처럼 처리할 수 있습니다.
+  // (실제 사용은 run() 또는 exec() 등에서)
+  /*
+  void smoothPathsExample()
+  {
+      interpolator::LinearInterpolator interpolator(0.5); // 원하는 해상도
+      Paths raw_paths = planToPaths(solution);
+      Paths smoothed_paths;
+      for (const auto& path : raw_paths) {
+          // 예시: 세그먼트당 5개로 균등 분할
+          auto fine_path = interpolator.dividePathEvenly(path, 5);
+          smoothed_paths.push_back(fine_path);
+      }
+      // smoothed_paths를 이후 시각화, 충돌 검사 등에 활용
+  }
+  */
 
   // -------------------------------
   // utilities for debug
@@ -143,7 +163,6 @@ public:
   void setDistanceTable(DistanceTable* p) { distance_table_p = p; }  // used in nested solvers
   // use grid-pathfinding
   int pathDist(Node* const s, Node* const g) const { return G->pathDist(s, g); }
-
 
   // -------------------------------
   // utilities for getting path

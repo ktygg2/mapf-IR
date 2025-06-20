@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(mapf-refine CXX)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+endif()
+
 
 add_subdirectory(./mapf)
 add_subdirectory(./third_party/googletest)

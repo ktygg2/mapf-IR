@@ -2,54 +2,62 @@
 
 #include <fstream>
 #include <regex>
+#include <sstream>
 
 #include "../include/util.hpp"
 
 Problem::Problem(const std::string& _instance)
     : instance(_instance), instance_initialized(true)
 {
-  // read map from instance file
   std::ifstream file(instance);
   if (!file) halt("file " + instance + " is not found.");
 
   std::string line;
-  std::smatch results;
-  std::regex r_map = std::regex(R"(map_file=(.+))");
+  std::regex r_map(R"(map_file=(.+))");
+  std::regex r_agents(R"(agents=(\d+))");
+  
+  bool map_loaded = false;
+  bool agent_section = false;
 
   while (getline(file, line)) {
-    if (*(line.end() - 1) == 0x0d) line.pop_back();
+    if (*(line.end() - 1) == 0x0d) line.pop_back(); // remove \r for Windows
+
+    std::smatch results;
     if (std::regex_match(line, results, r_map)) {
       G = new Grid(results[1].str());
-      break;
+      map_loaded = true;
+      std::cout << "Map file loaded: " << results[1].str() << std::endl;
+    } else if (std::regex_match(line, results, r_agents)) {
+      num_agents = std::stoi(results[1]);
+      agent_section = true;
+      std::cout << "Number of agents: " << num_agents << std::endl;
+    } else if (agent_section && !line.empty()) {
+      std::stringstream ss(line);
+      int sx, sy, sz, gx, gy, gz;
+      if (ss >> sx >> sy >> sz >> gx >> gy >> gz) {
+        Node* start = G->getNode(sx, sy, sz);
+        Node* goal = G->getNode(gx, gy, gz);
+
+        if (!start || !goal) {
+          std::cout << "Invalid node - start: (" << sx << "," << sy << "," << sz << ") or goal: (" << gx << "," << gy << "," << gz << ")" << std::endl;
+          halt("Start or goal node not found on the map. Check coordinates.");
+        }
+
+        config_s.push_back(start);
+        config_g.push_back(goal);
+        std::cout << "Parsed Start: (" << sx << "," << sy << "," << sz << ") -> Goal: (" << gx << "," << gy << "," << gz << ")" << std::endl;
+      }
     }
   }
 
-  // 하드코딩 설정
-  num_agents = 2;
-
-  // 하드코딩된 시작/목표 위치 (빈 공간 10x10x10)
-  Node* s1 = G->getNode(0, 0, 0);     // Agent 0 start
-  Node* g1 = G->getNode(9, 9, 9);     // Agent 0 goal
-  Node* s2 = G->getNode(9, 0, 0);     // Agent 1 start
-  Node* g2 = G->getNode(0, 9, 9);     // Agent 1 goal
-
-  if (!s1 || !g1 || !s2 || !g2) {
-    halt("Hardcoded node(s) do not exist. Check map size and coordinates.");
+  if (!map_loaded || num_agents == 0 || config_s.size() != (size_t)num_agents) {
+    halt("Failed to initialize problem from instance file. Check format.");
   }
 
-  config_s.push_back(s1);
-  config_g.push_back(g1);
-  config_s.push_back(s2);
-  config_g.push_back(g2);
-
-  // 기본값 설정
   MT = new std::mt19937(DEFAULT_SEED);
   max_timestep = DEFAULT_MAX_TIMESTEP;
   max_comp_time = DEFAULT_MAX_COMP_TIME;
-
-  // trimming (여기선 사실 필요 없음)
-  config_s.resize(num_agents);
-  config_g.resize(num_agents);
+  std::cout << "Problem initialized with " << num_agents << " agents." << std::endl;
 }
 
 Problem::Problem(Problem* P, Config _config_s, Config _config_g,
@@ -99,15 +107,10 @@ Node* Problem::getGoal(int i) const
 
 void Problem::setRandomStartsGoals()
 {
-  // initialize
   config_s.clear();
   config_g.clear();
-
-  // get grid size
   Grid* grid = reinterpret_cast<Grid*>(G);
-  const int N = grid->getWidth() * grid->getHeight() * grid->getDepth();  // 3D 환경에 맞게 수정
-
-  // set starts
+  const int N = grid->getWidth() * grid->getHeight() * grid->getDepth();
   std::vector<int> starts(N);
   std::iota(starts.begin(), starts.end(), 0);
   std::shuffle(starts.begin(), starts.end(), *MT);
@@ -121,8 +124,6 @@ void Problem::setRandomStartsGoals()
     if ((int)config_s.size() == num_agents) break;
     ++i;
   }
-
-  // set goals
   std::vector<int> goals(N);
   std::iota(goals.begin(), goals.end(), 0);
   std::shuffle(goals.begin(), goals.end(), *MT);
@@ -132,7 +133,6 @@ void Problem::setRandomStartsGoals()
       ++j;
       if (j >= N) halt("set goal, number of agents is too large.");
     }
-    // retry if goal is same as start
     if (G->getNode(goals[j]) == config_s[config_g.size()]) {
       config_g.clear();
       std::shuffle(goals.begin(), goals.end(), *MT);
@@ -143,33 +143,25 @@ void Problem::setRandomStartsGoals()
     if ((int)config_g.size() == num_agents) break;
     ++j;
   }
+  std::cout << "Random starts and goals set." << std::endl;
 }
 
 void Problem::setWellFormedInstance()
 {
-  // initialize
   config_s.clear();
   config_g.clear();
-
-  // get grid size
   const int N = G->getNodesSize();
   Nodes prohibited, starts_goals;
-
   while ((int)config_g.size() < getNum()) {
     while (true) {
-      // determine start (3D 환경에 맞게 수정)
       Node* s;
       do {
         s = G->getNode(getRandomInt(0, N - 1, MT));
       } while (s == nullptr || inArray(s, prohibited));
-
-      // determine goal (3D 환경에 맞게 수정)
       Node* g;
       do {
         g = G->getNode(getRandomInt(0, N - 1, MT));
       } while (g == nullptr || g == s || inArray(g, prohibited));
-
-      // ensure well formed property
       auto path = G->getPath(s, g, starts_goals);
       if (!path.empty()) {
         config_s.push_back(s);
@@ -183,9 +175,9 @@ void Problem::setWellFormedInstance()
       }
     }
   }
+  std::cout << "Well-formed instance set." << std::endl;
 }
 
-// I know that using "const" is something wired...
 void Problem::halt(const std::string& msg) const
 {
   std::cout << "error@Problem: " << msg << std::endl;
@@ -214,4 +206,6 @@ void Problem::makeScenFile(const std::string& output_file)
         << config_g[i]->pos.x << "," << config_g[i]->pos.y << "," << config_g[i]->pos.z << "\n";
   }
   log.close();
+  std::cout << "Scenario file created: " << output_file << std::endl;
 }
+

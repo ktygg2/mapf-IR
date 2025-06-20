@@ -4,6 +4,7 @@
 #include <iomanip>
 
 #include "../include/lib_cbs.hpp"
+#include "linear_interpolator.hpp"
 
 MinimumSolver::MinimumSolver(Problem* _P)
   : solver_name(""),
@@ -194,6 +195,8 @@ void Solver::makeLogBasicInfo(std::ofstream& log)
 
 void Solver::makeLogSolution(std::ofstream& log)
 {
+  log << std::fixed << std::setprecision(2);  // 모든 실수값을 소수점 둘째 자리까지 출력
+
   log << "starts=";
   for (int i = 0; i < P->getNum(); ++i) {
     Node* v = P->getStart(i);

@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C++ Debug",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/app",  
+      "args": [
+        "-i",
+        "${workspaceFolder}/../ros2_ws/src/mapf_visualizer_3d/scripts/sample_3d.txt",
+        "-s", "CBS",
+        "-v"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb"
+    },
+    {
+      "name": "ROS: Launch",
+      "request": "launch",
+      "target": "/home/kty/ros2_ws/install/mapf_visualizer_3d/share/mapf_visualizer_3d/launch/csv_visualizer_launch.py",
+      "launch": [
+        "rviz",
+        "gz",
+        "gzclient",
+        "gzserver"
+      ],
+      "type": "ros"
+    },
+    {
+      "name": "Python: CSV Visualizer",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "/home/kty/ros2_ws/src/mapf_visualizer_3d/mapf_visualizer_3d/repulsive_force.py",
+      "args": [],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}/install/mapf_visualizer_3d/lib/python3.10/site-packages"
+      }
+    }
+  ]
+}

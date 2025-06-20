@@ -34,22 +34,25 @@ using Configs = std::vector<Config>;
 class Problem
 {
 private:
-  std::string instance;  // instance name
-  Graph* G;              // graph
-  std::mt19937* MT;      // seed
+  std::string instance;  // instance file path
+  Graph* G;              // grid map (Graph)
+  std::mt19937* MT;      // random seed generator
   Config config_s;       // initial configuration
   Config config_g;       // goal configuration
   int num_agents;        // number of agents
   int max_timestep;      // timestep limit
-  int max_comp_time;     // comp_time limit, ms
+  int max_comp_time;     // computation time limit (ms)
 
-  const bool instance_initialized;  // for memory manage
+  const bool instance_initialized;  // for memory management
 
   // set starts and goals randomly
   void setRandomStartsGoals();
 
   // set well-formed instance
   void setWellFormedInstance();
+
+  // parse coordinate string like "(x,y,z)"
+  Node* parseCoordString(const std::string& coord_str);  // ✅ 새로 추가된 부분
 
   // utilities
   void halt(const std::string& msg) const;
@@ -65,8 +68,8 @@ public:
   Graph* getG() { return G; }
   int getNum() { return num_agents; }
   std::mt19937* getMT() { return MT; }
-  Node* getStart(int i) const;  // return start of a_i
-  Node* getGoal(int i) const;   // return  goal of a_i
+  Node* getStart(int i) const;  // return start of agent i
+  Node* getGoal(int i) const;   // return goal of agent i
   Config getConfigStart() const { return config_s; };
   Config getConfigGoal() const { return config_g; };
   int getMaxTimestep() { return max_timestep; };
